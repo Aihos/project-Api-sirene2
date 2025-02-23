@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Search, Building2, Calendar } from 'lucide-react';
 
 interface Company {
   siren: string;
@@ -12,15 +11,15 @@ interface Company {
   dateCreationUniteLegale: string;
   categorieEntreprise: string;
   activitePrincipaleEtablissement?: string;
-  nomenclatureActivitePrincipaleEtablissement?: string; // Nouveau
-  activitePrincipaleUniteLegale?: string; // Nouveau
-  nomenclatureActivitePrincipaleUniteLegale?: string; // Nouveau
-  apetEtablissement?: string; // Nouveau (Activité Principale Exercée de l'Etablissement)
-  apenUniteLegale?: string; // Nouveau (Activité Principale Exercée de l'Unité Legale)
+  nomenclatureActivitePrincipaleEtablissement?: string;
+  activitePrincipaleUniteLegale?: string;
+  nomenclatureActivitePrincipaleUniteLegale?: string;
+  apetEtablissement?: string;
+  apenUniteLegale?: string;
   adresse: string;
 }
 
-const API_KEY = "1a3d1061-7d89-4c64-bd10-617d89ac64cd";
+const    = "1a3d1061-7d89-4c64-bd10-617d89ac64cd";
 
 function App() {
   const [company, setCompany] = useState<Company | null>(null);
@@ -30,12 +29,25 @@ function App() {
   const [cursor, setCursor] = useState<string>('');
   const [hasMore, setHasMore] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Valeurs par défaut pour les dates
   const today = new Date().toISOString().slice(0, 10);
   const yearStart = `${new Date().getFullYear()}-01-01`;
   const [startDate, setStartDate] = useState(yearStart);
   const [endDate, setEndDate] = useState(today);
+
+  const getSortedCompanies = () => {
+    return [...recentCompanies].sort((a, b) => {
+      const dateA = new Date(a.dateCreationUniteLegale).getTime();
+      const dateB = new Date(b.dateCreationUniteLegale).getTime();
+      return sortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+  };
+
+  const handleSort = () => {
+    setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
 
   const fetchRecentCompanies = async (reset = true) => {
     try {
@@ -52,7 +64,7 @@ function App() {
       url += `q=dateCreationEtablissement:[${startDate} TO ${endDate}]`;
       url += ` AND codePostalEtablissement:53*`;
       url += `&etatAdministratifEtablissement=A`;
-      url += `&nombre=1000`; // Taille de page réduite
+      url += `&nombre=1000`;
       if (cursor) url += `&curseur=${encodeURIComponent(cursor)}`;
 
       const response = await fetch(url, {
@@ -100,7 +112,7 @@ function App() {
     }
   };
 
-return (
+  return (
     <div className="min-h-screen bg-[#fff3ed] py-8 px-4">
       <div className="max-w-3/4 mx-auto p-6 rounded-lg">
         <h1 className="text-2xl font-bold text-[#440706] mb-4 text-center">Recherche d'Entreprise</h1>
@@ -164,8 +176,28 @@ return (
 
         {recentCompanies.length > 0 ? (
           <>
+            <div className="flex items-center justify-between mb-4">
+              <div className="text-[#9c1710] text-sm font-medium">
+                {recentCompanies.length} entreprises chargées
+              </div>
+              <button
+                onClick={handleSort}
+                className="px-4 py-2 bg-[#ffc6a9] text-[#7d1611] rounded-lg hover:bg-[#ff9d72] transition-colors font-medium flex items-center gap-2"
+              >
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  className={`h-4 w-4 transition-transform ${sortOrder === 'asc' ? 'rotate-180' : ''}`}
+                  viewBox="0 0 20 20" 
+                  fill="currentColor"
+                >
+                  <path d="M3 3a1 1 0 000 2h11a1 1 0 100-2H3zM3 7a1 1 0 000 2h7a1 1 0 100-2H3zM3 11a1 1 0 100 2h4a1 1 0 100-2H3zM15 8a1 1 0 10-2 0v5.586l-1.293-1.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L15 13.586V8z" />
+                </svg>
+                Trier par date ({sortOrder === 'asc' ? 'anciennes' : 'récentes'})
+              </button>
+            </div>
+
             <ul className="space-y-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {recentCompanies.map((company, index) => (
+              {getSortedCompanies().map((company, index) => (
                 <li key={index} className="bg-white p-3 rounded-lg shadow flex flex-col hover:shadow-lg transition duration-300 border-2 border-[#ffc6a9] hover:border-[#fc4413]">
                   <a href={`https://www.pappers.fr/entreprise/${company.siren}`} target="_blank" rel="noreferrer" className="flex flex-col gap-1 text-[#9c1710] hover:text-[#c41a0a]">
                     <span className="font-medium">{company.denominationUniteLegale}</span>
