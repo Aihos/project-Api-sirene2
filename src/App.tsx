@@ -19,7 +19,7 @@ interface Company {
   adresse: string;
 }
 
-const    = "1a3d1061-7d89-4c64-bd10-617d89ac64cd";
+const API_KEY = "1a3d1061-7d89-4c64-bd10-617d89ac64cd";
 
 function App() {
   const [company, setCompany] = useState<Company | null>(null);
