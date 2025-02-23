@@ -100,29 +100,29 @@ function App() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+return (
+    <div className="min-h-screen bg-[#fff3ed] py-8 px-4">
       <div className="max-w-3/4 mx-auto p-6 rounded-lg">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4 text-center">Recherche d'Entreprise</h1>
+        <h1 className="text-2xl font-bold text-[#440706] mb-4 text-center">Recherche d'Entreprise</h1>
 
-        <div className="flex flex-col justify-around align-middle items-center gap-2 mb-4 bg-white p-4 rounded-lg shadow-md">
-          <div className="grid grid-cols-2 gap-4">
-            <label className="flex flex-col">
+        <div className="flex flex-col justify-around align-middle items-center gap-2 mb-4 bg-white p-4 rounded-lg shadow-md border-2 border-[#ffc6a9]">
+          <div className="grid grid-cols-2 gap-4 w-full">
+            <label className="flex flex-col text-[#7d1611]">
               Date de début:
               <input
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="px-2 py-1 border border-gray-300 rounded-lg"
+                className="px-2 py-1 border-2 border-[#ffc6a9] rounded-lg focus:ring-2 focus:ring-[#fc4413]"
               />
             </label>
-            <label className="flex flex-col">
+            <label className="flex flex-col text-[#7d1611]">
               Date de fin:
               <input
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="px-2 py-1 border border-gray-300 rounded-lg"
+                className="px-2 py-1 border-2 border-[#ffc6a9] rounded-lg focus:ring-2 focus:ring-[#fc4413]"
               />
             </label>
           </div>
@@ -131,13 +131,13 @@ function App() {
             <button
               onClick={() => fetchRecentCompanies(true)}
               disabled={loading}
-              className="w-1/3 px-4 py-2 bg-white text-black outline rounded-lg hover:bg-black hover:text-white transition-colors disabled:opacity-50"
+              className="w-1/3 px-4 py-2 bg-[#fd5f2b] text-white rounded-lg hover:bg-[#c41a0a] transition-colors disabled:opacity-50 font-semibold shadow-md"
             >
               {isInitialLoad ? 'Recherche en cours...' : 'Nouvelle recherche'}
             </button>
 
             {recentCompanies.length > 0 && (
-              <div className="text-gray-600 text-sm">
+              <div className="text-[#9c1710] text-sm font-medium">
                 {recentCompanies.length} entreprises chargées
               </div>
             )}
@@ -146,52 +146,46 @@ function App() {
               <button
                 onClick={() => fetchRecentCompanies(false)}
                 disabled={loading}
-                className="px-4 py-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50"
+                className="px-4 py-2 bg-[#ffc6a9] text-[#7d1611] rounded-lg hover:bg-[#ff9d72] transition-colors disabled:opacity-50 font-medium"
               >
                 {loading ? 'Chargement...' : 'Charger plus d\'entreprises'}
               </button>
             )}
 
             {!hasMore && recentCompanies.length > 0 && (
-              <div className="text-green-600 p-3 text-sm">
+              <div className="text-[#9c1710] p-3 text-sm bg-[#fff3ed] rounded-full">
                 Toutes les entreprises sont chargées
               </div>
             )}
           </div>
         </div>
 
-        {error && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4">{error}</div>}
+        {error && <div className="bg-[#ffc6a9] text-[#7d1611] p-3 rounded-lg mb-4 font-medium">{error}</div>}
 
         {recentCompanies.length > 0 ? (
           <>
             <ul className="space-y-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {recentCompanies.map((company, index) => (
-                <li key={index} className="bg-white p-3 rounded-lg shadow flex flex-col hover:shadow-lg transition duration-300">
-                  <a href={`https://www.pappers.fr/entreprise/${company.siren}`} target="_blank" rel="noreferrer" className="flex flex-col gap-1 underline text-gray-900 hover:text-blue-500">
+                <li key={index} className="bg-white p-3 rounded-lg shadow flex flex-col hover:shadow-lg transition duration-300 border-2 border-[#ffc6a9] hover:border-[#fc4413]">
+                  <a href={`https://www.pappers.fr/entreprise/${company.siren}`} target="_blank" rel="noreferrer" className="flex flex-col gap-1 text-[#9c1710] hover:text-[#c41a0a]">
                     <span className="font-medium">{company.denominationUniteLegale}</span>
                     <span className="text-sm">SIREN : {company.siren} | SIRET : {company.siret}</span>
                   </a>
-                  <span className="text-gray-500 text-sm mt-2">Créé le : {company.dateCreationUniteLegale}</span>
+                  <span className="text-[#7d1611] text-sm mt-2">Créé le : {company.dateCreationUniteLegale}</span>
                   <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(company.adresse)}`} target="_blank" rel="noreferrer">
-                    <span className="text-gray-500 text-sm underline hover:text-black">Adresse : {company.adresse}</span>
+                    <span className="text-[#9c1710] text-sm underline hover:text-[#c41a0a]">Adresse : {company.adresse}</span>
                   </a>
-                  <span className="text-gray-500 text-sm">Catégorie : {company.categorieEntreprise}</span>
-                 {/*  <span className="text-gray-500 text-sm">Activité : {company.activitePrincipaleEtablissement}</span> */}
-              {/*     <span className="text-gray-500 text-sm">Activité NAF : {company.nomenclatureActivitePrincipaleEtablissement}</span> */}
-              <a className="flex flex-col gap-1 underline text-gray-900 hover:text-blue-500" href={'https://www.insee.fr/fr/metadonnees/nafr2/sousClasse/'+company.activitePrincipaleUniteLegale} target="_blank" rel="noreferrer">
-                 <span className="font-medium">Activité NAF : {company.activitePrincipaleUniteLegale}</span>
-                  <span className="font-medium">Activité NAF : {company.nomenclatureActivitePrincipaleUniteLegale}</span>
-              </a>
-                 
-                  {/* <span className="text-gray-500 text-sm">APE : {company.apetEtablissement}</span>
-                  <span className="text-gray-500 text-sm">APE NAF : {company.apenUniteLegale}</span> */}
-                  
+                  <span className="text-[#7d1611] text-sm">Catégorie : {company.categorieEntreprise}</span>
+                  <a className="flex flex-col gap-1 mt-2" href={'https://www.insee.fr/fr/metadonnees/nafr2/sousClasse/'+company.activitePrincipaleUniteLegale} target="_blank" rel="noreferrer">
+                    <span className="text-[#fd5f2b] font-medium">Activité NAF : {company.activitePrincipaleUniteLegale}</span>
+                    <span className="text-[#9c1710] text-xs">Nomenclature : {company.nomenclatureActivitePrincipaleUniteLegale}</span>
+                  </a>
                 </li>
               ))}
             </ul>
           </>
         ) : (
-          !isInitialLoad && <p className="text-gray-500 italic">Aucune entreprise trouvée pour cette période.</p>
+          !isInitialLoad && <p className="text-[#9c1710] italic text-center">Aucune entreprise trouvée pour cette période.</p>
         )}
       </div>
     </div>
