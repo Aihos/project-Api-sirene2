@@ -112,6 +112,46 @@ function App() {
     }
   };
 
+  /* Partie Button excel */
+  const exportToCSV = () => {
+    if (recentCompanies.length === 0) {
+      alert("Aucune donnée à exporter.");
+      return;
+    }
+  
+    const csvHeader = [
+      "SIREN",
+      "SIRET",
+      "Dénomination",
+      "Date de création",
+      "Catégorie",
+      "Activité principale",
+      "Adresse"
+    ].join(";");
+  
+    const csvRows = recentCompanies.map(company => [
+      company.siren,
+      company.siret,
+      company.denominationUniteLegale,
+      company.dateCreationUniteLegale,
+      company.categorieEntreprise,
+      company.activitePrincipaleUniteLegale || "Non spécifiée",
+      company.adresse.replace(/[\r\n]+/g, " ") // Éviter les sauts de ligne dans les champs
+    ].join(";"));
+  
+    const csvContent = [csvHeader, ...csvRows].join("\n");
+  
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "entreprises.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+
   return (
     <div className="min-h-screen bg-[#fff3ed] py-8 px-4">
       <div className="max-w-3/4 mx-auto p-6 rounded-lg">
@@ -170,6 +210,13 @@ function App() {
               </div>
             )}
           </div>
+          <button
+  onClick={exportToCSV}
+  className="w-1/3 px-4 py-2 bg-[#fd5f2b] text-white rounded-lg hover:bg-[#c41a0a] transition-colors disabled:opacity-50 font-semibold shadow-md"
+>
+  Exporter en CSV
+</button>
+
         </div>
 
         {error && <div className="bg-[#ffc6a9] text-[#7d1611] p-3 rounded-lg mb-4 font-medium">{error}</div>}
