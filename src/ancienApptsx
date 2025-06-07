@@ -21,15 +21,6 @@ interface Company {
 
 const API_KEY = "1a3d1061-7d89-4c64-bd10-617d89ac64cd";
 
-// Définition de la liste des codes NAF autorisés
-const validNafCodes = [
-  "0111Z", "0112Z", "0113Z", "0114Z", "0115Z", "0116Z", "0119Z",
-  "0121Z", "0122Z", "0123Z", "0124Z", "0125Z", "0126Z", "0127Z", "0128Z", "0129Z",
-  "0130Z", "0141Z", "0142Z", "0143Z", "0144Z", "0145Z", "0146Z", "0147Z", "0149Z",
-  "0150Z", "0161Z", "0162Z", "0163Z", "0164Z", "0170Z", "0210Z", "0220Z", "0230Z",
-  "8130Z"
-];
-
 function App() {
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(false);
@@ -39,12 +30,14 @@ function App() {
   const [hasMore, setHasMore] = useState(true);
   const [isInitialLoad, setIsInitialLoad] = useState(false);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [codeNaf, setCodeNaf] = useState('5320Z');
 
   // Valeurs par défaut pour les dates
   const today = new Date().toISOString().slice(0, 10);
   const yearStart = `${new Date().getFullYear()}-01-01`;
   const [startDate, setStartDate] = useState(yearStart);
   const [endDate, setEndDate] = useState(today);
+
 
   const getSortedCompanies = () => {
     return [...recentCompanies].sort((a, b) => {
@@ -69,12 +62,13 @@ function App() {
         setIsInitialLoad(true);
       }
 
-      // Construire l'URL avec les filtres sur la date et le code postal uniquement.
       let url = `https://api.insee.fr/api-sirene/3.11/siret?`;
-      url += `q=dateCreationEtablissement:[${startDate} TO ${endDate}]`;
-      url += `AND codePostalEtablissement:53*`;
+       url += `q=dateCreationEtablissement:[${startDate} TO ${endDate}]`; 
+       
+      url += `AND codePostalEtablissement:53*`; 
+      /*  url += `AND activitePrincipaleEtablissement:[${codeNaf}]`; */
       url += `&etatAdministratifEtablissement=A`;
-      url += `&nombre=10000`;
+      url += `&nombre=1000`;
       if (cursor) url += `&curseur=${encodeURIComponent(cursor)}`;
 
       const response = await fetch(url, {
@@ -91,29 +85,15 @@ function App() {
       const data = await response.json();
       const newCursor = data.header.curseurSuivant;
       
-      // Fonction pour normaliser une valeur de code NAF : suppression du point et mise en majuscules.
-      const normalize = (val: string | undefined) =>
-        val ? val.replace('.', '').toUpperCase() : '';
-
-      // Filtrage côté client : conserver uniquement les établissements dont le code postal commence par "53"
-      // et dont l'une des valeurs (activitePrincipaleEtablissement ou uniteLegale.activitePrincipaleUniteLegale)
-      // fait partie de validNafCodes.
-      const filteredEstabs = data.etablissements.filter((etab: any) => {
-        const validPostal = etab.adresseEtablissement?.codePostalEtablissement?.startsWith("53");
-        const nafEtab = normalize(etab.activitePrincipaleEtablissement);
-        const nafUnite = normalize(etab.uniteLegale?.activitePrincipaleUniteLegale);
-        return validPostal &&
-          ( validNafCodes.includes(nafEtab) || validNafCodes.includes(nafUnite) );
-      });
+      const filteredEstabs = data.etablissements.filter((etab: any) => 
+        etab.adresseEtablissement?.codePostalEtablissement?.startsWith("53")
+      /* && etab.activitePrincipaleEtablissement?.startsWith("53") || etab.activitePrincipaleUniteLegale?.startsWith("53") */
+      );
 
       const companies = filteredEstabs.map((etablissement: any) => ({
         siret: etablissement.siret || '',
         siren: etablissement.siren || '',
-        denominationUniteLegale: etablissement.uniteLegale?.denominationUniteLegale ||
-          etablissement.uniteLegale?.denominationUsuelle1UniteLegale ||
-          etablissement.uniteLegale?.denominationUsuelle2UniteLegale ||
-          etablissement.uniteLegale?.denominationUsuelle3UniteLegale ||
-          etablissement.uniteLegale?.nomUsageUniteLegale || 'Nom non défini',
+        denominationUniteLegale: etablissement.uniteLegale?.denominationUniteLegale || etablissement.uniteLegale?.denominationUsuelle1UniteLegale || etablissement.uniteLegale?.denominationUsuelle2UniteLegale || etablissement.uniteLegale?.denominationUsuelle3UniteLegale ||  etablissement.uniteLegale?.nomUsageUniteLegale || 'Nope pas de nom',
         dateCreationUniteLegale: etablissement.dateCreationEtablissement || '',
         categorieEntreprise: etablissement.uniteLegale?.categorieEntreprise || 'Non spécifiée',
         activitePrincipaleEtablissement: etablissement.activitePrincipaleEtablissement || '',
@@ -125,10 +105,11 @@ function App() {
         adresse: `${etablissement.adresseEtablissement?.numeroVoieEtablissement || ''} ${etablissement.adresseEtablissement?.typeVoieEtablissement || ''} ${etablissement.adresseEtablissement?.libelleVoieEtablissement || ''} ${etablissement.adresseEtablissement?.codePostalEtablissement || ''} ${etablissement.adresseEtablissement?.libelleCommuneEtablissement || ''}`
       }));
 
-      setRecentCompanies(reset ? companies : [...recentCompanies, ...companies]);
+      setRecentCompanies(prev => reset ? companies : [...prev, ...companies]);
       setCursor(newCursor);
       setHasMore(!!newCursor);
       setIsInitialLoad(false);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de récupération des données');
     } finally {
@@ -136,6 +117,7 @@ function App() {
     }
   };
 
+  /* Partie Button excel */
   const exportToCSV = () => {
     if (recentCompanies.length === 0) {
       alert("Aucune donnée à exporter.");
@@ -147,10 +129,9 @@ function App() {
       "SIRET",
       "Dénomination",
       "Date de création",
-      "Adresse",
-      "Code postal",
-      "Commune",
-      "Code NAF"
+      "Catégorie",
+      "Activité principale",
+      "Adresse"
     ].join(";");
   
     const csvRows = recentCompanies.map(company => [
@@ -158,13 +139,13 @@ function App() {
       company.siret,
       company.denominationUniteLegale,
       company.dateCreationUniteLegale,
-      company.adresse.replace(/[\r\n]+/g, " "),
-      company.adresse.split(" ").slice(-2, -1).join(" "), // Code postal
-      company.adresse.split(" ").slice(-1).join(" "), // Commune
-      company.activitePrincipaleUniteLegale || "Non spécifiée"
+      company.categorieEntreprise,
+      company.activitePrincipaleUniteLegale || "Non spécifiée",
+      company.adresse.replace(/[\r\n]+/g, " ") // Éviter les sauts de ligne dans les champs
     ].join(";"));
   
     const csvContent = [csvHeader, ...csvRows].join("\n");
+  
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -175,12 +156,13 @@ function App() {
     document.body.removeChild(link);
   };
   
+
   return (
     <div className="min-h-screen bg-[#fff3ed] py-8 px-4">
       <div className="max-w-3/4 mx-auto p-6 rounded-lg">
         <h1 className="text-2xl font-bold text-[#440706] mb-4 text-center">Recherche d'Entreprise</h1>
-  
-        <div className="flex flex-col justify-around items-center gap-2 mb-4 bg-white p-4 rounded-lg shadow-md border-2 border-[#ffc6a9]">
+
+        <div className="flex flex-col justify-around align-middle items-center gap-2 mb-4 bg-white p-4 rounded-lg shadow-md border-2 border-[#ffc6a9]">
           <div className="grid grid-cols-2 gap-4 w-full">
             <label className="flex flex-col text-[#7d1611]">
               Date de début:
@@ -201,7 +183,7 @@ function App() {
               />
             </label>
           </div>
-  
+
           <div className="flex flex-col items-center gap-4 w-full">
             <button
               onClick={() => fetchRecentCompanies(true)}
@@ -210,13 +192,13 @@ function App() {
             >
               {isInitialLoad ? 'Recherche en cours...' : 'Nouvelle recherche'}
             </button>
-  
+
             {recentCompanies.length > 0 && (
               <div className="text-[#9c1710] text-sm font-medium">
                 {recentCompanies.length} entreprises chargées
               </div>
             )}
-  
+
             {hasMore && !isInitialLoad && (
               <button
                 onClick={() => fetchRecentCompanies(false)}
@@ -226,7 +208,7 @@ function App() {
                 {loading ? 'Chargement...' : 'Charger plus d\'entreprises'}
               </button>
             )}
-  
+
             {!hasMore && recentCompanies.length > 0 && (
               <div className="text-[#9c1710] p-3 text-sm bg-[#fff3ed] rounded-full">
                 Toutes les entreprises sont chargées
@@ -234,15 +216,16 @@ function App() {
             )}
           </div>
           <button
-            onClick={exportToCSV}
-            className="w-1/3 px-4 py-2 bg-[#fd5f2b] text-white rounded-lg hover:bg-[#c41a0a] transition-colors disabled:opacity-50 font-semibold shadow-md"
-          >
-            Exporter en CSV
-          </button>
+  onClick={exportToCSV}
+  className="w-1/3 px-4 py-2 bg-[#fd5f2b] text-white rounded-lg hover:bg-[#c41a0a] transition-colors disabled:opacity-50 font-semibold shadow-md"
+>
+  Exporter en CSV
+</button>
+
         </div>
-  
+
         {error && <div className="bg-[#ffc6a9] text-[#7d1611] p-3 rounded-lg mb-4 font-medium">{error}</div>}
-  
+
         {recentCompanies.length > 0 ? (
           <>
             <div className="flex items-center justify-between mb-4">
@@ -264,7 +247,7 @@ function App() {
                 Trier par date ({sortOrder === 'asc' ? 'anciennes' : 'récentes'})
               </button>
             </div>
-  
+
             <ul className="space-y-2 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {getSortedCompanies().map((company, index) => (
                 <li key={index} className="bg-white p-3 rounded-lg shadow flex flex-col hover:shadow-lg transition duration-300 border-2 border-[#ffc6a9] hover:border-[#fc4413]">
@@ -277,7 +260,7 @@ function App() {
                     <span className="text-[#9c1710] text-sm underline hover:text-[#c41a0a]">Adresse : {company.adresse}</span>
                   </a>
                   <span className="text-[#7d1611] text-sm">Catégorie : {company.categorieEntreprise}</span>
-                  <a className="flex flex-col gap-1 mt-2" href={'https://www.insee.fr/fr/metadonnees/nafr2/sousClasse/' + company.activitePrincipaleUniteLegale} target="_blank" rel="noreferrer">
+                  <a className="flex flex-col gap-1 mt-2" href={'https://www.insee.fr/fr/metadonnees/nafr2/sousClasse/'+company.activitePrincipaleUniteLegale} target="_blank" rel="noreferrer">
                     <span className="text-[#fd5f2b] font-medium">Activité NAF : {company.activitePrincipaleUniteLegale}</span>
                     <span className="text-[#9c1710] text-xs">Nomenclature : {company.nomenclatureActivitePrincipaleUniteLegale}</span>
                   </a>
