@@ -14,6 +14,7 @@ interface Company {
   nomenclatureActivitePrincipaleEtablissement?: string;
   activitePrincipaleUniteLegale?: string;
   nomenclatureActivitePrincipaleUniteLegale?: string;
+  etatAdministratifUniteLegale?: string; //nouveau champ
   apetEtablissement?: string;
   apenUniteLegale?: string;
   adresse: string;
@@ -22,12 +23,17 @@ interface Company {
 const API_KEY = "1a3d1061-7d89-4c64-bd10-617d89ac64cd";
 
 // Définition de la liste des codes NAF autorisés
-const validNafCodes = [
+/* const validNafCodes = [
   "0111Z", "0112Z", "0113Z", "0114Z", "0115Z", "0116Z", "0119Z",
   "0121Z", "0122Z", "0123Z", "0124Z", "0125Z", "0126Z", "0127Z", "0128Z", "0129Z",
   "0130Z", "0141Z", "0142Z", "0143Z", "0144Z", "0145Z", "0146Z", "0147Z", "0149Z",
   "0150Z", "0161Z", "0162Z", "0163Z", "0164Z", "0170Z", "0210Z", "0220Z", "0230Z",
   "8130Z"
+]; */
+
+// liste des codees naf pour emmanuelle
+const validNafCodes = [
+  "0141Z", "0142Z", "0143Z", "0145Z", "0149Z", "0150Z"
 ];
 
 function App() {
@@ -72,7 +78,7 @@ function App() {
       // Construire l'URL avec les filtres sur la date et le code postal uniquement.
       let url = `https://api.insee.fr/api-sirene/3.11/siret?`;
       url += `q=dateCreationEtablissement:[${startDate} TO ${endDate}]`;
-      url += `AND codePostalEtablissement:53*`;
+      url += `AND codePostalEtablissement:61*`;
       url += `&etatAdministratifEtablissement=A`;
       url += `&nombre=10000`;
       if (cursor) url += `&curseur=${encodeURIComponent(cursor)}`;
@@ -95,11 +101,11 @@ function App() {
       const normalize = (val: string | undefined) =>
         val ? val.replace('.', '').toUpperCase() : '';
 
-      // Filtrage côté client : conserver uniquement les établissements dont le code postal commence par "53"
+      // Filtrage côté client : conserver uniquement les établissements dont le code postal commence par "61"
       // et dont l'une des valeurs (activitePrincipaleEtablissement ou uniteLegale.activitePrincipaleUniteLegale)
       // fait partie de validNafCodes.
       const filteredEstabs = data.etablissements.filter((etab: any) => {
-        const validPostal = etab.adresseEtablissement?.codePostalEtablissement?.startsWith("53");
+        const validPostal = etab.adresseEtablissement?.codePostalEtablissement?.startsWith("61");
         const nafEtab = normalize(etab.activitePrincipaleEtablissement);
         const nafUnite = normalize(etab.uniteLegale?.activitePrincipaleUniteLegale);
         return validPostal &&
@@ -119,6 +125,7 @@ function App() {
         activitePrincipaleEtablissement: etablissement.activitePrincipaleEtablissement || '',
         nomenclatureActivitePrincipaleEtablissement: etablissement.activitePrincipaleEtablissement || '',
         activitePrincipaleUniteLegale: etablissement.uniteLegale?.activitePrincipaleUniteLegale || '',
+        etatAdministratifUniteLegale: etablissement.uniteLegale?.etatAdministratifUniteLegale || 'Actif',
         nomenclatureActivitePrincipaleUniteLegale: etablissement.uniteLegale?.activitePrincipaleUniteLegale || '',
         apetEtablissement: etablissement.apet700 || '',
         apenUniteLegale: etablissement.uniteLegale?.apen700 || '',
@@ -143,6 +150,7 @@ function App() {
     }
   
     const csvHeader = [
+      "Unite Legale",
       "SIREN",
       "SIRET",
       "Dénomination",
@@ -154,6 +162,7 @@ function App() {
     ].join(";");
   
     const csvRows = recentCompanies.map(company => [
+      company.etatAdministratifUniteLegale,
       company.siren,
       company.siret,
       company.denominationUniteLegale,
@@ -178,7 +187,7 @@ function App() {
   return (
     <div className="min-h-screen bg-[#fff3ed] py-8 px-4">
       <div className="max-w-3/4 mx-auto p-6 rounded-lg">
-        <h1 className="text-2xl font-bold text-[#440706] mb-4 text-center">Recherche d'Entreprise</h1>
+        <h1 className="text-2xl font-bold text-[#440706] mb-4 text-center">Recherche d'Entreprises</h1>
   
         <div className="flex flex-col justify-around items-center gap-2 mb-4 bg-white p-4 rounded-lg shadow-md border-2 border-[#ffc6a9]">
           <div className="grid grid-cols-2 gap-4 w-full">
@@ -271,6 +280,7 @@ function App() {
                   <a href={`https://www.pappers.fr/entreprise/${company.siren}`} target="_blank" rel="noreferrer" className="flex flex-col gap-1 text-[#9c1710] hover:text-[#c41a0a]">
                     <span className="font-medium">{company.denominationUniteLegale}</span>
                     <span className="text-sm">SIREN : {company.siren} | SIRET : {company.siret}</span>
+                    <span className="text-sm">État : {company.etatAdministratifUniteLegale || 'pas donnée'}</span>
                   </a>
                   <span className="text-[#7d1611] text-sm mt-2">Créé le : {company.dateCreationUniteLegale}</span>
                   <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(company.adresse)}`} target="_blank" rel="noreferrer">
