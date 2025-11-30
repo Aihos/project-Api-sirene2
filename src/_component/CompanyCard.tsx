@@ -17,6 +17,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
         <span className="font-medium">{company.denominationUniteLegale}</span>
         <span className="text-sm">SIREN : {company.siren} | SIRET : {company.siret}</span>
         <span className="text-sm">État : {company.etatAdministratifUniteLegale || 'pas donnée'}</span>
+        <span>Nom et prénom : {company.prenom1UniteLegale} {company.nomUniteLegale}</span>
       </a>
       <span className="text-[#7d1611] text-sm mt-2">Créé le : {company.dateCreationUniteLegale}</span>
       <a 

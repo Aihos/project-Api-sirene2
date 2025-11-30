@@ -76,7 +76,9 @@ export const useCompanySearch = () => {
           etablissement.uniteLegale?.denominationUsuelle1UniteLegale ||
           etablissement.uniteLegale?.denominationUsuelle2UniteLegale ||
           etablissement.uniteLegale?.denominationUsuelle3UniteLegale ||
-          etablissement.uniteLegale?.nomUsageUniteLegale || 'Nom non défini',
+          etablissement.uniteLegale?.nomUsageUniteLegale ||
+          `${etablissement.uniteLegale?.nomUniteLegale || ''} ${etablissement.uniteLegale?.prenom1UniteLegale || ''}`.trim() ||
+          'Dénomination non disponible',
         dateCreationUniteLegale: etablissement.dateCreationEtablissement || '',
         categorieEntreprise: etablissement.uniteLegale?.categorieEntreprise || 'Non spécifiée',
         activitePrincipaleEtablissement: etablissement.activitePrincipaleEtablissement || '',
@@ -85,6 +87,8 @@ export const useCompanySearch = () => {
         etatAdministratifUniteLegale: etablissement.uniteLegale?.etatAdministratifUniteLegale || 'Actif',
         nomenclatureActivitePrincipaleUniteLegale: etablissement.uniteLegale?.activitePrincipaleUniteLegale || '',
         apetEtablissement: etablissement.apet700 || '',
+        nomUniteLegale: etablissement.uniteLegale?.nomUniteLegale || '',
+        prenom1UniteLegale: etablissement.uniteLegale?.prenom1UniteLegale || '',
         apenUniteLegale: etablissement.uniteLegale?.apen700 || '',
         adresse: `${etablissement.adresseEtablissement?.numeroVoieEtablissement || ''} ${etablissement.adresseEtablissement?.typeVoieEtablissement || ''} ${etablissement.adresseEtablissement?.libelleVoieEtablissement || ''} ${etablissement.adresseEtablissement?.codePostalEtablissement || ''} ${etablissement.adresseEtablissement?.libelleCommuneEtablissement || ''}`
       }));
@@ -111,6 +115,8 @@ export const useCompanySearch = () => {
       "SIREN",
       "SIRET",
       "Dénomination",
+      "Nom unité légale",
+      "Prénom 1 unité légale",
       "Date de création",
       "Adresse",
       "Code postal",
@@ -124,6 +130,8 @@ export const useCompanySearch = () => {
       company.siren,
       company.siret,
       company.denominationUniteLegale,
+      company.nomUniteLegale || "",
+      company.prenom1UniteLegale || "",
       company.dateCreationUniteLegale,
       company.adresse.replace(/[\r\n]+/g, " "),
       company.adresse.split(" ").slice(-2, -1).join(" "), // Code postal
