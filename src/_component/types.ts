@@ -16,7 +16,12 @@ export interface Company {
   apetEtablissement?: string;
   apenUniteLegale?: string;
   nomUniteLegale?: string;
+  pseudonymeUniteLegale?: string;
   prenom1UniteLegale?: string;
+  prenom2UniteLegale?: string;
+  prenom3UniteLegale?: string;
+  prenom4UniteLegale?: string;
+  prenomUsuelUniteLegale?: string;
   adresse: string;
 }
 

@@ -33,12 +33,12 @@ export const useCompanySearch = () => {
       }
 
       // Construire l'URL avec les filtres sur la date et le code postal uniquement.
-      let url = `https://api.insee.fr/api-sirene/3.11/siret?`;
-      url += `q=dateCreationEtablissement:[${startDate} TO ${endDate}]`;
-      url += `AND codePostalEtablissement:${selectedDepartment}*`;
-      url += `&etatAdministratifEtablissement=A`;
-      url += `&nombre=10000`;
+      let url = `https://api.insee.fr/api-sirene/3.11/siret?q=dateCreationEtablissement:[${startDate} TO ${endDate}] 
+      AND codePostalEtablissement:${selectedDepartment}* 
+      AND etatAdministratifUniteLegale:A&nombre=10000`;
       if (cursor) url += `&curseur=${encodeURIComponent(cursor)}`;
+
+      console.log('URL API INSEE:', url);
 
       const response = await fetch(url, {
         headers: {
@@ -87,8 +87,8 @@ export const useCompanySearch = () => {
         etatAdministratifUniteLegale: etablissement.uniteLegale?.etatAdministratifUniteLegale || 'Actif',
         nomenclatureActivitePrincipaleUniteLegale: etablissement.uniteLegale?.activitePrincipaleUniteLegale || '',
         apetEtablissement: etablissement.apet700 || '',
-        nomUniteLegale: etablissement.uniteLegale?.nomUniteLegale || '',
-        prenom1UniteLegale: etablissement.uniteLegale?.prenom1UniteLegale || '',
+        nomUniteLegale: etablissement.uniteLegale?.nomUniteLegale || etablissement.uniteLegale?.pseudonymeUniteLegale || '',
+        prenom1UniteLegale: etablissement.uniteLegale?.prenom1UniteLegale || etablissement.uniteLegale?.prenom2UniteLegale || etablissement.uniteLegale?.prenom3UniteLegale || etablissement.uniteLegale?.prenom4UniteLegale || etablissement.uniteLegale?.prenomUsuelUniteLegale || '',
         apenUniteLegale: etablissement.uniteLegale?.apen700 || '',
         adresse: `${etablissement.adresseEtablissement?.numeroVoieEtablissement || ''} ${etablissement.adresseEtablissement?.typeVoieEtablissement || ''} ${etablissement.adresseEtablissement?.libelleVoieEtablissement || ''} ${etablissement.adresseEtablissement?.codePostalEtablissement || ''} ${etablissement.adresseEtablissement?.libelleCommuneEtablissement || ''}`
       }));
